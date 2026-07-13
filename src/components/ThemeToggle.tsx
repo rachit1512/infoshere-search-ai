@@ -3,7 +3,7 @@ import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { theme, toggle } = useTheme();
+  const { resolved, toggle } = useTheme();
   return (
     <Button
       variant="ghost"
@@ -12,7 +12,7 @@ export function ThemeToggle() {
       aria-label="Toggle theme"
       className="rounded-full"
     >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
 }
