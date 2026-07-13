@@ -78,19 +78,28 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           display_name: string | null
+          full_name: string | null
           id: string
+          updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id: string
+          updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -111,6 +120,39 @@ export type Database = {
           created_at?: string
           id?: string
           keyword?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          enable_ai_summary: boolean
+          enable_suggestions: boolean
+          save_history: boolean
+          summary_length: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enable_ai_summary?: boolean
+          enable_suggestions?: boolean
+          save_history?: boolean
+          summary_length?: string
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enable_ai_summary?: boolean
+          enable_suggestions?: boolean
+          save_history?: boolean
+          summary_length?: string
+          theme?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
