@@ -106,11 +106,14 @@ function AuthPage() {
 
   const google = async () => {
     setPending(true);
+    // Reveal the email login option as soon as the user engages with Google —
+    // it acts as an immediate fallback if the OAuth popup is blocked or fails.
+    setShowEmail(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error(result.error.message ?? "Google sign-in failed");
+      toast.error(result.error.message ?? "Google sign-in failed — use email below");
       setPending(false);
       return;
     }
