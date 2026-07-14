@@ -35,6 +35,7 @@ function AuthPage() {
   const [pending, setPending] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [showEmail, setShowEmail] = useState(false);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
