@@ -146,74 +146,89 @@ function AuthPage() {
       >
         <GoogleIcon /> Continue with Google
       </Button>
-      <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-        <div className="h-px flex-1 bg-border" /> OR CONTINUE WITH EMAIL <div className="h-px flex-1 bg-border" />
-      </div>
 
-      <Tabs value={search.mode} onValueChange={(v) => navigate({ to: "/auth", search: { mode: v as "signin" | "signup" } })}>
-        <TabsList className="grid w-full grid-cols-2 rounded-xl">
-          <TabsTrigger value="signin" className="rounded-lg">Sign in</TabsTrigger>
-          <TabsTrigger value="signup" className="rounded-lg">Create account</TabsTrigger>
-        </TabsList>
+      {!showEmail ? (
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={() => setShowEmail(true)}
+            className="text-sm text-brand hover:underline"
+          >
+            Or continue with email
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" /> OR CONTINUE WITH EMAIL <div className="h-px flex-1 bg-border" />
+          </div>
 
-        <TabsContent value="signin">
-          <form onSubmit={handleSignIn} className="mt-5 space-y-4">
-            <Field name="email" label="Email" type="email" icon={<Mail className="h-4 w-4" />} />
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-xs text-brand hover:underline">Forgot password?</Link>
-              </div>
-              <PasswordInput id="password" name="password" required className="mt-1 h-11 rounded-xl" />
-            </div>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Checkbox name="remember" defaultChecked /> Remember me
-            </label>
-            <Button disabled={pending} className="h-11 w-full rounded-xl bg-gradient-brand text-white shadow-glow hover:opacity-90 animate-gradient">
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
-            </Button>
-          </form>
-        </TabsContent>
+          <Tabs value={search.mode} onValueChange={(v) => navigate({ to: "/auth", search: { mode: v as "signin" | "signup" } })}>
+            <TabsList className="grid w-full grid-cols-2 rounded-xl">
+              <TabsTrigger value="signin" className="rounded-lg">Sign in</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg">Create account</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="signup">
-          <form onSubmit={handleSignUp} className="mt-5 space-y-4">
-            <Field name="full_name" label="Full name" type="text" placeholder="Jane Doe" />
-            <Field name="email" label="Email" type="email" icon={<Mail className="h-4 w-4" />} />
-            <div>
-              <Label htmlFor="new-password">Password</Label>
-              <PasswordInput
-                id="new-password"
-                name="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 h-11 rounded-xl"
-              />
-              <PasswordStrength password={password} />
-            </div>
-            <div>
-              <Label htmlFor="confirm-password">Confirm password</Label>
-              <PasswordInput
-                id="confirm-password"
-                name="confirm"
-                required
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="mt-1 h-11 rounded-xl"
-              />
-              {confirm && confirm !== password && (
-                <p className="mt-1 text-xs text-destructive">Passwords do not match</p>
-              )}
-            </div>
-            <Button disabled={pending} className="h-11 w-full rounded-xl bg-gradient-brand text-white shadow-glow hover:opacity-90 animate-gradient">
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create account <ArrowRight className="h-4 w-4" /></>}
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              By continuing you agree to our Terms and Privacy Policy.
-            </p>
-          </form>
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="signin">
+              <form onSubmit={handleSignIn} className="mt-5 space-y-4">
+                <Field name="email" label="Email" type="email" icon={<Mail className="h-4 w-4" />} />
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link to="/forgot-password" className="text-xs text-brand hover:underline">Forgot password?</Link>
+                  </div>
+                  <PasswordInput id="password" name="password" required className="mt-1 h-11 rounded-xl" />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox name="remember" defaultChecked /> Remember me
+                </label>
+                <Button disabled={pending} className="h-11 w-full rounded-xl bg-gradient-brand text-white shadow-glow hover:opacity-90 animate-gradient">
+                  {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="mt-5 space-y-4">
+                <Field name="full_name" label="Full name" type="text" placeholder="Jane Doe" />
+                <Field name="email" label="Email" type="email" icon={<Mail className="h-4 w-4" />} />
+                <div>
+                  <Label htmlFor="new-password">Password</Label>
+                  <PasswordInput
+                    id="new-password"
+                    name="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mt-1 h-11 rounded-xl"
+                  />
+                  <PasswordStrength password={password} />
+                </div>
+                <div>
+                  <Label htmlFor="confirm-password">Confirm password</Label>
+                  <PasswordInput
+                    id="confirm-password"
+                    name="confirm"
+                    required
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    className="mt-1 h-11 rounded-xl"
+                  />
+                  {confirm && confirm !== password && (
+                    <p className="mt-1 text-xs text-destructive">Passwords do not match</p>
+                  )}
+                </div>
+                <Button disabled={pending} className="h-11 w-full rounded-xl bg-gradient-brand text-white shadow-glow hover:opacity-90 animate-gradient">
+                  {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create account <ArrowRight className="h-4 w-4" /></>}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  By continuing you agree to our Terms and Privacy Policy.
+                </p>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </AuthShell>
   );
 }
