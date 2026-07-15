@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2, Mail, RefreshCw, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthShell } from "@/components/AuthShell";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ function ResetPage() {
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
   const [verifiedViaLink, setVerifiedViaLink] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
 
   // If the user clicked the email link, Supabase establishes a recovery session automatically.
   useEffect(() => {
@@ -46,8 +48,17 @@ function ResetPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const friendlyOtpError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Codes are valid for 1 hour — please request a new one.";
+    if (m.includes("invalid") || m.includes("token")) return "That code isn't valid. Double-check the 6 digits or request a new code.";
+    if (m.includes("rate") || m.includes("too many")) return "Too many attempts. Please wait a minute before trying again.";
+    return raw;
+  };
+
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setOtpError(null);
     if (scorePassword(password) < 2) return toast.error("Password is too weak");
     if (password !== confirm) return toast.error("Passwords do not match");
 
@@ -68,7 +79,11 @@ function ResetPage() {
       toast.success("Password updated — you're signed in.");
       navigate({ to: "/" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not reset password");
+      const msg = err instanceof Error ? err.message : "Could not reset password";
+      const friendly = friendlyOtpError(msg);
+      setOtpError(friendly);
+      setCode("");
+      toast.error(friendly);
     } finally {
       setPending(false);
     }
@@ -77,18 +92,21 @@ function ResetPage() {
   const resend = async () => {
     if (!email) return toast.error("Enter your email first");
     setResending(true);
+    setOtpError(null);
+    setCode("");
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
-      toast.success("New code sent.");
+      toast.success("New code sent — check your inbox.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not resend code");
     } finally {
       setResending(false);
     }
   };
+
 
   return (
     <AuthShell
@@ -125,25 +143,63 @@ function ResetPage() {
             <div>
               <Label>Verification code</Label>
               <div className="mt-2 flex justify-center">
-                <InputOTP maxLength={6} value={code} onChange={setCode}>
+                <InputOTP
+                  maxLength={6}
+                  value={code}
+                  onChange={(v) => {
+                    setCode(v);
+                    if (otpError) setOtpError(null);
+                  }}
+                >
                   <InputOTPGroup>
                     {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} className="h-11 w-11 rounded-xl text-lg" />
+                      <InputOTPSlot
+                        key={i}
+                        index={i}
+                        className={`h-11 w-11 rounded-xl text-lg ${otpError ? "border-destructive" : ""}`}
+                      />
                     ))}
                   </InputOTPGroup>
                 </InputOTP>
               </div>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                Didn't get it?{" "}
-                <button
-                  type="button"
-                  onClick={resend}
-                  disabled={resending}
-                  className="text-brand hover:underline disabled:opacity-50"
-                >
-                  {resending ? "Sending…" : "Resend code"}
-                </button>
-              </p>
+
+              {otpError ? (
+                <Alert variant="destructive" className="mt-3 rounded-xl">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Code couldn't be verified</AlertTitle>
+                  <AlertDescription className="space-y-2">
+                    <p>{otpError}</p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={resend}
+                      disabled={resending}
+                      className="mt-1 h-8 rounded-lg"
+                    >
+                      {resending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3 w-3" /> Send a new code
+                        </>
+                      )}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  Codes expire after 1 hour. Didn't get it?{" "}
+                  <button
+                    type="button"
+                    onClick={resend}
+                    disabled={resending}
+                    className="text-brand hover:underline disabled:opacity-50"
+                  >
+                    {resending ? "Sending…" : "Resend code"}
+                  </button>
+                </p>
+              )}
             </div>
           </>
         )}
