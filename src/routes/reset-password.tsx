@@ -143,25 +143,63 @@ function ResetPage() {
             <div>
               <Label>Verification code</Label>
               <div className="mt-2 flex justify-center">
-                <InputOTP maxLength={6} value={code} onChange={setCode}>
+                <InputOTP
+                  maxLength={6}
+                  value={code}
+                  onChange={(v) => {
+                    setCode(v);
+                    if (otpError) setOtpError(null);
+                  }}
+                >
                   <InputOTPGroup>
                     {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <InputOTPSlot key={i} index={i} className="h-11 w-11 rounded-xl text-lg" />
+                      <InputOTPSlot
+                        key={i}
+                        index={i}
+                        className={`h-11 w-11 rounded-xl text-lg ${otpError ? "border-destructive" : ""}`}
+                      />
                     ))}
                   </InputOTPGroup>
                 </InputOTP>
               </div>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                Didn't get it?{" "}
-                <button
-                  type="button"
-                  onClick={resend}
-                  disabled={resending}
-                  className="text-brand hover:underline disabled:opacity-50"
-                >
-                  {resending ? "Sending…" : "Resend code"}
-                </button>
-              </p>
+
+              {otpError ? (
+                <Alert variant="destructive" className="mt-3 rounded-xl">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Code couldn't be verified</AlertTitle>
+                  <AlertDescription className="space-y-2">
+                    <p>{otpError}</p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={resend}
+                      disabled={resending}
+                      className="mt-1 h-8 rounded-lg"
+                    >
+                      {resending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3 w-3" /> Send a new code
+                        </>
+                      )}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  Codes expire after 1 hour. Didn't get it?{" "}
+                  <button
+                    type="button"
+                    onClick={resend}
+                    disabled={resending}
+                    className="text-brand hover:underline disabled:opacity-50"
+                  >
+                    {resending ? "Sending…" : "Resend code"}
+                  </button>
+                </p>
+              )}
             </div>
           </>
         )}
