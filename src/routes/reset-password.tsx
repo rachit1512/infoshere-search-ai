@@ -35,6 +35,7 @@ function ResetPage() {
   const [pending, setPending] = useState(false);
   const [resending, setResending] = useState(false);
   const [verifiedViaLink, setVerifiedViaLink] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
 
   // If the user clicked the email link, Supabase establishes a recovery session automatically.
   useEffect(() => {
@@ -47,8 +48,17 @@ function ResetPage() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const friendlyOtpError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes("expired")) return "This code has expired. Codes are valid for 1 hour — please request a new one.";
+    if (m.includes("invalid") || m.includes("token")) return "That code isn't valid. Double-check the 6 digits or request a new code.";
+    if (m.includes("rate") || m.includes("too many")) return "Too many attempts. Please wait a minute before trying again.";
+    return raw;
+  };
+
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setOtpError(null);
     if (scorePassword(password) < 2) return toast.error("Password is too weak");
     if (password !== confirm) return toast.error("Passwords do not match");
 
@@ -69,7 +79,11 @@ function ResetPage() {
       toast.success("Password updated — you're signed in.");
       navigate({ to: "/" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not reset password");
+      const msg = err instanceof Error ? err.message : "Could not reset password";
+      const friendly = friendlyOtpError(msg);
+      setOtpError(friendly);
+      setCode("");
+      toast.error(friendly);
     } finally {
       setPending(false);
     }
@@ -78,18 +92,21 @@ function ResetPage() {
   const resend = async () => {
     if (!email) return toast.error("Enter your email first");
     setResending(true);
+    setOtpError(null);
+    setCode("");
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
-      toast.success("New code sent.");
+      toast.success("New code sent — check your inbox.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not resend code");
     } finally {
       setResending(false);
     }
   };
+
 
   return (
     <AuthShell
